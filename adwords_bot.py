@@ -1,15 +1,16 @@
-from lxml.html import fromstring
 import ipdb
 import os
 from selenium import webdriver
 import time
 from selenium.webdriver.common.keys import Keys
 import urllib2
+import csv
 
 username="tmslav"
 password="laajviii"
 country='Canada'
 outputdir="/home/tom/documents/elance/google_adwords/output"
+url_file_map={}
 class googleAdwords:
     def __init__(self):
         profile = webdriver.FirefoxProfile()
@@ -83,15 +84,7 @@ class googleAdwords:
                 csv_url=self.br.find_element_by_link_text("Your download is now available. Click to retrieve it.").get_attribute("href")
                 print csv_url
                 self.br.find_element_by_link_text("Your download is now available. Click to retrieve it.").click()
-                nr=True
-                while nr:
-                    try:
-                        os.rename(outputdir+"/"+csv_url.split("/")[-1],outputdir+"/"+self.filename.replace(".csv","")+"output.csv")
-                        nr=False
-                    except:
-                        time.sleep(1)
-                os.unlink(outputdir+"/"+csv_url.split("/")[-1])
-                #os.rename()
+                url_file_map[csv_url.split("/")[-1]]=self.filename
                 ready=True
             except:
                 time.sleep(1)
@@ -126,6 +119,17 @@ if __name__=='__main__':
     sc.prepare_for_upload(files[0],country)
     for i in files[1:]:
         sc.next_csv(i)
+    os.chdir("output")
+    for i in os.listdir("."):
+        os.rename(i,url_file_map[i.split("/")[-1].replace(".csv","")+"output.csv")
+    for i in files:
+        if "download-" in i:
+            os.unlink(i)
+    files=[i for i in os.listdir(".")]
+    masterkw=[]
+    ipdb.set_trace()
+
+
 
 
 
