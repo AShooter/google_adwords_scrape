@@ -5,6 +5,7 @@ import time
 from selenium.webdriver.common.keys import Keys
 import urllib2
 import csv
+import codecs
 
 username="tmslav"
 password="laajviii"
@@ -111,6 +112,8 @@ class googleAdwords:
             self.loading()
     def get_state(self):
         return self.br.execute_script("return document.readyState")
+    def quit(self):
+        self.br.quit()
 
 
 if __name__=='__main__':
@@ -120,14 +123,26 @@ if __name__=='__main__':
     for i in files[1:]:
         sc.next_csv(i)
     os.chdir("output")
-    for i in os.listdir("."):
-        os.rename(i,url_file_map[i.split("/")[-1].replace(".csv","")+"output.csv")
-    for i in files:
-        if "download-" in i:
-            os.unlink(i)
-    files=[i for i in os.listdir(".")]
+
+    for i in url_file_map.keys():
+        os.rename(i,url_file_map[i].replace(".csv","")+"output.csv")
     masterkw=[]
+    for i in os.listdir("."):
+        f=codecs.open(i,"rb","utf-16")
+        csvread=csv.reader(f,delimiter='\t')
+        csvread.next()
+        for row in csvread:
+            masterkw.append(row)
+    sortedmaster=sorted(masterkw,key=lambda x:x[3])
+    remove_0=[i for i in sortedmaster if i[3]!='0' and i[3]!='']
+    csvwriter=csv.writer(open("masterkw.xls","wb"))
+    for row in remove_0:
+        csvwriter.writerow(row)
     ipdb.set_trace()
+    sc.quit()
+
+
+
 
 
 
