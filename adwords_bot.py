@@ -7,8 +7,8 @@ import urllib2
 import csv
 import codecs
 
-username="tmslav"
-password="laajviii"
+username=""
+password=""
 country='Canada'
 outputdir="/home/tom/documents/elance/google_adwords/output"
 url_file_map={}
@@ -117,8 +117,10 @@ class googleAdwords:
         el=self.br.find_elements_by_xpath("//div[@class='spLOB spHNB spPOB spMOB spCPB']//span[text()='Cancel upload']")
         if el!=[]:
             url_file_map[filename]=filename.replace(".csv","")+"ERROR.csv"
-            time.sleep(2)
+            time.sleep(6)
             el[0].click()
+            self.br.find_elements_by_xpath("//div[@class='goog-button-base-content']/span[text()='Cancel']")[8].click()
+            time.sleep(2)
         else:
             self.download()
 
