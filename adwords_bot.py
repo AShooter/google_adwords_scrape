@@ -28,33 +28,44 @@ class googleAdwords:
         self.hard_click(self.br.find_element_by_xpath,"//input[@id='signIn']")
         self.loading()
 
-    def prepare_for_upload(self,file_name,country):
+    def prepare_for_upload(self,file_name,country,state=1):
         self.filename=file_name
-        self.hard_click(self.br.find_element_by_xpath,"//div[@class='aw-cues-item-c']['Tools and Analysis '=text()]")
-        self.br.find_element_by_link_text("Keyword Planner").click()
-        self.loading()
-        if self.br.find_elements_by_xpath("//span[@id='gwt-debug-startover-startover-content']")!=[]:
-            self.br.find_element_by_xpath("//span[@id='gwt-debug-startover-startover-content']").click()
-        self.hard_click(self.br.find_element_by_xpath,"//div[@id='gwt-debug-splash-panel-stats-selection-input']")
-        self.loading()
-        self.br.find_elements_by_xpath("//input[@name='uploadFile'][@id='gwt-debug-upload-file']")[2].send_keys(os.path.abspath(file_name))
-        self.br.find_elements_by_xpath("//div[@id='gwt-debug-location-pill-display-text-div']")[0].click()
-        time.sleep(1)
-        self.br.find_element_by_link_text("Remove all").click()
-        time.sleep(1)
-        self.br.find_element_by_xpath("//input[@id='gwt-debug-geo-search-box']").clear()
-        self.br.find_element_by_xpath("//input[@id='gwt-debug-geo-search-box']").send_keys(country)
-        time.sleep(1)
-        self.br.find_element_by_link_text("Add").click()
-        time.sleep(1)
-        self.br.find_elements_by_xpath("//span['Get search volume'=text()]")[3].click()
-        self.br.find_elements_by_xpath("//span['Get search volume'=text()]")[3].click()
-        self.loading()
-        time.sleep(2)
-        self.br.find_element_by_xpath("//div[text()='Keyword ideas']").click()
-        self.br.find_element_by_xpath("//div[text()='Keyword ideas']").click()
-        self.loading()
-        self.download()
+        if state==2:
+            self.br.find_element_by_xpath("//div[@class='spLOB spHNB spPOB spMOB spCPB']//span[text()='Cancel upload']").click()
+            time.sleep(1)
+        if state==1:
+            self.hard_click(self.br.find_element_by_xpath,"//div[@class='aw-cues-item-c']['Tools and Analysis '=text()]")
+            self.br.find_element_by_link_text("Keyword Planner").click()
+            self.loading()
+            if self.br.find_elements_by_xpath("//span[@id='gwt-debug-startover-startover-content']")!=[]:
+                self.br.find_element_by_xpath("//span[@id='gwt-debug-startover-startover-content']").click()
+            self.hard_click(self.br.find_element_by_xpath,"//div[@id='gwt-debug-splash-panel-stats-selection-input']")
+            self.loading()
+            self.br.find_elements_by_xpath("//input[@name='uploadFile'][@id='gwt-debug-upload-file']")[2].send_keys(os.path.abspath(file_name))
+            self.br.find_elements_by_xpath("//div[@id='gwt-debug-location-pill-display-text-div']")[0].click()
+            time.sleep(1)
+            self.br.find_element_by_link_text("Remove all").click()
+            time.sleep(1)
+        if state==2:
+            self.br.find_element_by_link_text("Remove").click()
+            self.br.find_elements_by_xpath("//input[@name='uploadFile'][@id='gwt-debug-upload-file']")[2].send_keys(os.path.abspath(file_name))
+        if state==1:
+            self.br.find_element_by_xpath("//input[@id='gwt-debug-geo-search-box']").clear()
+            self.br.find_element_by_xpath("//input[@id='gwt-debug-geo-search-box']").send_keys(country)
+            time.sleep(1)
+            self.br.find_element_by_link_text("Add").click()
+            time.sleep(1)
+        try:
+            self.br.find_elements_by_xpath("//span['Get search volume'=text()]")[3].click()
+            self.br.find_elements_by_xpath("//span['Get search volume'=text()]")[3].click()
+            self.loading()
+            time.sleep(2)
+            self.br.find_element_by_xpath("//div[text()='Keyword ideas']").click()
+            self.br.find_element_by_xpath("//div[text()='Keyword ideas']").click()
+            self.loading()
+            self.download()
+        except:
+            return True
 
     def hard_click(self,func,xpath,arr_numb=None):
         nl=False
@@ -93,6 +104,9 @@ class googleAdwords:
         self.br.find_element_by_xpath("//span[@id='gwt-debug-close-button-success-content']").click()
         time.sleep(10)
 
+
+
+
     def next_csv(self,filename):
         self.filename=filename
         self.hard_click(self.br.find_element_by_xpath,"//span[@id='gwt-debug-modify-search-button-content']")
@@ -100,7 +114,13 @@ class googleAdwords:
         self.br.find_elements_by_xpath("//input[@name='uploadFile'][@id='gwt-debug-upload-file']")[4].send_keys(os.path.abspath(filename))
         time.sleep(2)
         self.hard_click(self.br.find_elements_by_xpath,"//span[@id='gwt-debug-upload-ideas-button-content']",6)
-        self.download()
+        el=self.br.find_elements_by_xpath("//div[@class='spLOB spHNB spPOB spMOB spCPB']//span[text()='Cancel upload']")
+        if el!=[]:
+            url_file_map[filename]=filename.replace(".csv","")+"ERROR.csv"
+            time.sleep(2)
+            el[0].click()
+        else:
+            self.download()
 
 
     def loading(self):
@@ -119,14 +139,29 @@ class googleAdwords:
 if __name__=='__main__':
     files=[i for i in os.listdir(".") if ".csv" in i]
     sc=googleAdwords()
-    sc.prepare_for_upload(files[0],country)
-    for i in files[1:]:
+    state=1
+    fail=False
+    j=0
+    for i in files:
+        j+=1
+        fail=sc.prepare_for_upload(i,country,state)
+        if fail:
+            url_file_map[i]=i.replace(".csv","")+"ERROR.csv"
+        state=2
+        if not fail:
+            break
+    for i in files[j:]:
         sc.next_csv(i)
     os.chdir("output")
 
     for i in url_file_map.keys():
-        os.rename(i,url_file_map[i].replace(".csv","")+"output.csv")
+        if "ERROR" in url_file_map[i]:
+            with open(url_file_map[i], 'a'):
+                os.utime(url_file_map[i], None)
+        else:
+            os.rename(i,url_file_map[i].replace(".csv","")+"output.csv")
     masterkw=[]
+
     for i in os.listdir("."):
         f=codecs.open(i,"rb","utf-16")
         csvread=csv.reader(f,delimiter='\t')
@@ -138,7 +173,6 @@ if __name__=='__main__':
     csvwriter=csv.writer(open("masterkw.xls","wb"))
     for row in remove_0:
         csvwriter.writerow(row)
-    ipdb.set_trace()
     sc.quit()
 
 
